@@ -43,6 +43,7 @@ class WheelView(
     private var pathLineCover: Path? = null
     private var sliceAngle = 0f
     private var onAnimationEnded: ((Int) -> Unit)? = null
+    private var isAnimating = false
 
     var numberOfSlices: Int = 24
         set(value) {
@@ -249,21 +250,23 @@ class WheelView(
     /**
      * rotate animation to spin the wheel
      */
-    fun spinWheel() : Float {
-        var randomAngle = Random.nextInt(540, 2520).toFloat()
-        if (randomAngle % sliceAngle == 0f)  randomAngle += 1.5f
-        ObjectAnimator.ofFloat(this, ROTATION, currentAngle, randomAngle + currentAngle).apply {
-            duration = DURATION
-            interpolator = FastOutSlowInInterpolator()
-            doOnEnd {
-                currentAngle += randomAngle
-                val realAngle = currentAngle - (floor(currentAngle / 360f) * 360f)
-                currentTopSlice = numberOfSlices - (realAngle / sliceAngle).toInt()
-                onAnimationEnded?.invoke(currentTopSlice)
+    fun spinWheel() {
+        if (!isAnimating) {
+            isAnimating = true
+            val randomAngle = Random.nextInt(540, 2520).toFloat()
+            ObjectAnimator.ofFloat(this, ROTATION, currentAngle, randomAngle + currentAngle).apply {
+                duration = DURATION
+                interpolator = FastOutSlowInInterpolator()
+                doOnEnd {
+                    isAnimating = false
+                    currentAngle += randomAngle
+                    val realAngle = currentAngle - (floor(currentAngle / 360f) * 360f)
+                    currentTopSlice = numberOfSlices - (realAngle / sliceAngle).toInt()
+                    onAnimationEnded?.invoke(currentTopSlice)
+                }
+                start()
             }
-            start()
         }
-        return randomAngle
     }
 
     /**
