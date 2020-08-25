@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <declare-styleable name="PillWheelView">
+    <declare-styleable name="WheelView">
         <attr name="stv_color_odd_small_pie" format="color" />
         <attr name="stv_color_even_small_pie" format="color" />
         <attr name="stv_lock_pie_color" format="color" />

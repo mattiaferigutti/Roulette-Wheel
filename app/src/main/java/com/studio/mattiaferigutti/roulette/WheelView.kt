@@ -1,11 +1,14 @@
 package com.studio.mattiaferigutti.roulette
 
+import android.animation.ObjectAnimator
 import android.content.Context
 import android.graphics.*
 import android.text.TextPaint
 import android.util.AttributeSet
 import android.view.View
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import kotlin.math.*
+import kotlin.random.Random
 
 class WheelView(
     context: Context,
@@ -37,7 +40,7 @@ class WheelView(
     private var pathSmallPie: Path? = null
     private var pathLineCover: Path? = null
 
-    var numberOfSlices: Int = 25
+    var numberOfSlices: Int = 24
         set(value) {
             field = value
             invalidate()
@@ -57,7 +60,7 @@ class WheelView(
     private var pieSlice: PieSlice? = null
     private var pieSliceStatic : PieSlice? = null
     private var circleRadius = 0f
-    private var pillsTotal = 0
+    private var currentAngle = 0f
 
     var shadowColorCircle: Int = resources.getColor(R.color.shadowColor)
         set(value) {
@@ -84,7 +87,7 @@ class WheelView(
             field = value
             invalidate()
         }
-    var lineStrokeSize: Float = 1f
+    var lineStrokeSize: Float = 0.5f
         set(value) {
             field = value
             invalidate()
@@ -109,22 +112,21 @@ class WheelView(
             invalidate()
         }
 
-    private val lockBitmap = BitmapFactory.decodeResource(context.resources, R.drawable.ic_lock_icon)
-
     init {
-        context.obtainStyledAttributes(attrs, R.styleable.PillWheelView).apply {
-            //numberOfSlices = getInteger(R.styleable.PillWheelView_stv_number_of_slices, numberOfSlices)
-            lockPieColor = getColor(R.styleable.PillWheelView_stv_lock_pie_color, lockPieColor)
-            colorOddSmallPie = getColor(R.styleable.PillWheelView_stv_color_odd_small_pie, colorOddSmallPie)
-            colorEvenSmallPie = getColor(R.styleable.PillWheelView_stv_color_even_small_pie, colorEvenSmallPie)
-            shadowRadiusCircle = getFloat(R.styleable.PillWheelView_stv_shadow_radius, shadowRadiusCircle)
-            shadowColorCircle = getColor(R.styleable.PillWheelView_stv_color_shadow, shadowColorCircle)
-            lineColorBetweenSlices = getColor(R.styleable.PillWheelView_stv_line_color_between_slices, lineColorBetweenSlices)
-            lineStrokeSize = getFloat(R.styleable.PillWheelView_stv_line_stroke_size, lineStrokeSize)
-            shadowRadiusSlice = getFloat(R.styleable.PillWheelView_stv_shadow_radius_slice, shadowRadiusSlice)
-            shadowColorSlice = getColor(R.styleable.PillWheelView_stv_color_shadow_slices, shadowColorSlice)
+        context.obtainStyledAttributes(attrs, R.styleable.WheelView).apply {
+            numberOfSlices = getInteger(R.styleable.WheelView_stv_number_of_slices, numberOfSlices)
+            lockPieColor = getColor(R.styleable.WheelView_stv_lock_pie_color, lockPieColor)
+            colorOddSmallPie = getColor(R.styleable.WheelView_stv_color_odd_small_pie, colorOddSmallPie)
+            colorEvenSmallPie = getColor(R.styleable.WheelView_stv_color_even_small_pie, colorEvenSmallPie)
+            shadowRadiusCircle = getFloat(R.styleable.WheelView_stv_shadow_radius, shadowRadiusCircle)
+            shadowColorCircle = getColor(R.styleable.WheelView_stv_color_shadow, shadowColorCircle)
+            lineColorBetweenSlices = getColor(R.styleable.WheelView_stv_line_color_between_slices, lineColorBetweenSlices)
+            lineStrokeSize = getFloat(R.styleable.WheelView_stv_line_stroke_size, lineStrokeSize)
+            shadowRadiusSlice = getFloat(R.styleable.WheelView_stv_shadow_radius_slice, shadowRadiusSlice)
+            shadowColorSlice = getColor(R.styleable.WheelView_stv_color_shadow_slices, shadowColorSlice)
             recycle()
         }
+        this.setLayerType(LAYER_TYPE_SOFTWARE, null)
     }
 
     /**
@@ -132,13 +134,6 @@ class WheelView(
      */
     private val emptyBinSlice = Paint().apply {
         color = emptyBinColor
-        style = Paint.Style.FILL
-        isAntiAlias = true
-        isFilterBitmap = true
-    }
-
-    private val lockSlice = Paint().apply {
-        color = lockPieColor
         style = Paint.Style.FILL
         isAntiAlias = true
         isFilterBitmap = true
@@ -200,17 +195,13 @@ class WheelView(
         style = Paint.Style.STROKE
         strokeWidth = lineStrokeSize
         isAntiAlias = true
+        isFilterBitmap = true
     }
 
     private val textPaint = TextPaint().apply {
-        textSize = 12f
+        textSize = 30f
         color = colorCircle
         isAntiAlias = true
-    }
-
-    private val iconPaint = Paint().apply {
-        isAntiAlias = true
-        isFilterBitmap = true
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -218,8 +209,6 @@ class WheelView(
         canvas.drawCircle(width/2f, height/2f, width/2f, bigCirclePaint)
         drawSlices(canvas)
         drawShadowsForSlices(canvas)
-        canvas.drawPath(pieSliceStatic?.getPathBigPie()!!, lockSlice)
-        canvas.drawBitmap(lockBitmap, null, pieSliceStatic!!.getLockIconRect(), iconPaint)
         canvas.drawCircle(width/2f, height/2f, circleRadius, circlePaint)
         super.onDraw(canvas)
     }
@@ -248,6 +237,20 @@ class WheelView(
     }
 
     /**
+     * rotate animation to spin the wheel
+     */
+    fun spinWheel() : Float {
+        val randomAngle = Random.nextInt(540, 2520).toFloat()
+        ObjectAnimator.ofFloat(this, ROTATION, currentAngle, randomAngle + currentAngle).apply {
+            duration = DURATION
+            interpolator = FastOutSlowInInterpolator()
+            start()
+        }
+        currentAngle += randomAngle
+        return randomAngle
+    }
+
+    /**
      * It's used to draw slices
      */
     private var pieIndex = 0
@@ -259,13 +262,15 @@ class WheelView(
             }
             pieIndex++
         }
-        for(i in 0 until numberOfSlices) {
-            canvas.save()
-            canvas.rotate(theta, pieSlice!!.centerCircle, pieSlice!!.centerCircle)
-            drawPieSlice(canvas, i)
-            drawLines(canvas)
-            canvas.restore()
-            theta += (360f - startAngle)/numberOfSlices
+        pieSlice?.let {
+            for(i in 0 until numberOfSlices) {
+                canvas.save()
+                canvas.rotate(theta, it.centerCircle, it.centerCircle)
+                drawPieSlice(canvas, i)
+                drawLines(canvas)
+                canvas.restore()
+                theta += (360f - startAngle)/numberOfSlices
+            }
         }
     }
 
@@ -342,8 +347,8 @@ class WheelView(
     }
 
     companion object {
-        const val startAngle = 12f //dimension of the pink slice
+        const val startAngle = 0f //dimension of the pink slice
         const val middleLockSlice = 30
+        const val DURATION = 3000L
     }
-
 }
