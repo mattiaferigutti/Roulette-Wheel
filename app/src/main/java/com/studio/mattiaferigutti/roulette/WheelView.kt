@@ -253,7 +253,8 @@ class WheelView(
     fun spinWheel() {
         if (!isAnimating) {
             isAnimating = true
-            val randomAngle = Random.nextInt(540, 2520).toFloat()
+            var randomAngle = Random.nextInt(540, 2520).toFloat()
+            if (randomAngle % sliceAngle == 0f) randomAngle += 1.5f
             ObjectAnimator.ofFloat(this, ROTATION, currentAngle, randomAngle + currentAngle).apply {
                 duration = DURATION
                 interpolator = FastOutSlowInInterpolator()
