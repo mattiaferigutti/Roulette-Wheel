@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="PillWheelView">
+        <attr name="stv_color_odd_small_pie" format="color" />
+        <attr name="stv_color_even_small_pie" format="color" />
+        <attr name="stv_lock_pie_color" format="color" />
+        <attr name="stv_color_shadow" format="color" />
+        <attr name="stv_number_of_slices" format="integer" />
+        <attr name="stv_shadow_radius" format="float" />
+        <attr name="stv_line_color_between_slices" format="color" />
+        <attr name="stv_line_stroke_size" format="float" />
+        <attr name="stv_shadow_radius_slice" format="float" />
+        <attr name="stv_color_shadow_slices" format="color" />
+        <attr name="stv_lock_bitmap" format="integer" />
+    </declare-styleable>
+
+</resources>
