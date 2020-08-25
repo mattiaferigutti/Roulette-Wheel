@@ -6,6 +6,8 @@ import android.graphics.*
 import android.text.TextPaint
 import android.util.AttributeSet
 import android.view.View
+import androidx.core.animation.doOnEnd
+import androidx.core.content.ContextCompat
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import kotlin.math.*
 import kotlin.random.Random
@@ -39,9 +41,12 @@ class WheelView(
     private var pathBigPie: Path? = null
     private var pathSmallPie: Path? = null
     private var pathLineCover: Path? = null
+    private var sliceAngle = 0f
+    private var onAnimationEnded: ((Int) -> Unit)? = null
 
     var numberOfSlices: Int = 24
         set(value) {
+            sliceAngle = 360f / value.toFloat()
             field = value
             invalidate()
         }
@@ -61,8 +66,9 @@ class WheelView(
     private var pieSliceStatic : PieSlice? = null
     private var circleRadius = 0f
     private var currentAngle = 0f
+    var currentTopSlice = 0
 
-    var shadowColorCircle: Int = resources.getColor(R.color.shadowColor)
+    var shadowColorCircle: Int = ContextCompat.getColor(context, R.color.shadowColor)
         set(value) {
             field = value
             invalidate()
@@ -72,7 +78,7 @@ class WheelView(
             field = value
             invalidate()
         }
-    var shadowColorSlice: Int = resources.getColor(R.color.shadowColor)
+    var shadowColorSlice: Int = ContextCompat.getColor(context, R.color.shadowColor)
         set(value) {
             field = value
             invalidate()
@@ -82,7 +88,7 @@ class WheelView(
             field = value
             invalidate()
         }
-    var lockPieColor: Int = resources.getColor(R.color.lockPieColor)
+    var lockPieColor: Int = ContextCompat.getColor(context, R.color.lockPieColor)
         set(value) {
             field = value
             invalidate()
@@ -92,21 +98,21 @@ class WheelView(
             field = value
             invalidate()
         }
-    private val emptyBinColor: Int = resources.getColor(R.color.emptyBinColor)
-    var lineColorBetweenSlices: Int = resources.getColor(R.color.emptyBinsLine)
+    private val emptyBinColor: Int = ContextCompat.getColor(context, R.color.emptyBinColor)
+    var lineColorBetweenSlices: Int = ContextCompat.getColor(context, R.color.emptyBinsLine)
         set(value) {
             field = value
             invalidate()
         }
-    private var colorCircle: Int = resources.getColor(R.color.colorCircle)
-    private var colorBigCircle: Int = resources.getColor(R.color.colorBigCircle)
-    private var colorBigPie: Int = resources.getColor(R.color.colorBigPie)
-    var colorOddSmallPie: Int = resources.getColor(R.color.colorOddSmallPie)
+    private var colorCircle: Int = ContextCompat.getColor(context, R.color.colorCircle)
+    private var colorBigCircle: Int = ContextCompat.getColor(context, R.color.colorBigCircle)
+    private var colorBigPie: Int = ContextCompat.getColor(context, R.color.colorBigPie)
+    var colorOddSmallPie: Int = ContextCompat.getColor(context, R.color.colorOddSmallPie)
         set(value) {
             field = value
             invalidate()
         }
-    var colorEvenSmallPie: Int = resources.getColor(R.color.colorEvenSmallPie)
+    var colorEvenSmallPie: Int = ContextCompat.getColor(context, R.color.colorEvenSmallPie)
         set(value) {
             field = value
             invalidate()
@@ -236,17 +242,27 @@ class WheelView(
         pathLineCover = pieSlice?.getLineSmall()
     }
 
+    fun setAnimationEnded(onAnimationEnded: (Int) -> Unit) {
+        this.onAnimationEnded = onAnimationEnded
+    }
+
     /**
      * rotate animation to spin the wheel
      */
     fun spinWheel() : Float {
-        val randomAngle = Random.nextInt(540, 2520).toFloat()
+        var randomAngle = Random.nextInt(540, 2520).toFloat()
+        if (randomAngle % sliceAngle == 0f)  randomAngle += 1.5f
         ObjectAnimator.ofFloat(this, ROTATION, currentAngle, randomAngle + currentAngle).apply {
             duration = DURATION
             interpolator = FastOutSlowInInterpolator()
+            doOnEnd {
+                currentAngle += randomAngle
+                val realAngle = currentAngle - (floor(currentAngle / 360f) * 360f)
+                currentTopSlice = numberOfSlices - (realAngle / sliceAngle).toInt()
+                onAnimationEnded?.invoke(currentTopSlice)
+            }
             start()
         }
-        currentAngle += randomAngle
         return randomAngle
     }
 
