@@ -5,6 +5,8 @@ import android.content.Context
 import android.graphics.*
 import android.text.TextPaint
 import android.util.AttributeSet
+import android.util.Log
+import android.view.MotionEvent
 import android.view.View
 import androidx.core.animation.doOnEnd
 import androidx.core.content.ContextCompat
@@ -43,6 +45,7 @@ class WheelView(
     private var pathLineCover: Path? = null
     private var sliceAngle = 0f
     private var onAnimationEnded: ((Int) -> Unit)? = null
+    private var onInnerCircleTouch: ((Boolean) -> Unit)? = null
     private var isAnimating = false
 
     var numberOfSlices: Int = 21
@@ -227,6 +230,29 @@ class WheelView(
         super.onDraw(canvas)
     }
 
+    override fun onTouchEvent(event: MotionEvent?): Boolean {
+        when (event?.action) {
+            MotionEvent.ACTION_UP -> {
+               Log.d("ACTION", "action up")
+
+                val distance = sqrt((event.x - width / 2f).toDouble().pow(2.0) + (event.y - height / 2f).toDouble().pow(2.0))
+                if (distance < circleRadius) {
+                    Log.d("ACTION", "circle pressed")
+                    onInnerCircleTouch?.invoke(true)
+                }
+
+                return true
+            }
+            MotionEvent.ACTION_DOWN -> {
+                Log.d("ACTION", "action down")
+
+                return true
+            }
+        }
+        return false
+    }
+
+
     private fun drawText(canvas: Canvas, paint: TextPaint, text: String, pieSlice: PieSlice?, string: String) {
         val pointF = pieSlice?.getTextRect(paint.textSize, textPaint, string)
         canvas.drawText(text, pointF!!.x, pointF.y, paint)
@@ -252,6 +278,10 @@ class WheelView(
 
     fun setAnimationEnded(onAnimationEnded: (Int) -> Unit) {
         this.onAnimationEnded = onAnimationEnded
+    }
+
+    fun setInnerCircleTouch(onInnerCircleTouch: (Boolean) -> Unit) {
+        this.onInnerCircleTouch = onInnerCircleTouch
     }
 
     /**

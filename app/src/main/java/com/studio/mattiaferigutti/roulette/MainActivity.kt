@@ -11,15 +11,21 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        wheel?.numberOfSlices = 10
-        wheel?.shadowRadiusCircle = 8f
-
         spinButton.setOnClickListener {
             wheel?.spinWheel()
         }
 
-        wheel?.setAnimationEnded { currentPosition ->
-            Toast.makeText(this, "position: $currentPosition", Toast.LENGTH_SHORT).show()
+        wheel?.apply {
+            numberOfSlices = 10
+            shadowRadiusCircle = 8f
+
+            setAnimationEnded { currentPosition ->
+                Toast.makeText(this@MainActivity, "position: $currentPosition", Toast.LENGTH_SHORT).show()
+            }
+
+            setInnerCircleTouch {
+                this.spinWheel()
+            }
         }
     }
 }
