@@ -11,10 +11,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        spinButton.setOnClickListener {
-            wheel?.spinWheel()
-        }
-
         wheel?.apply {
             numberOfSlices = 10
             shadowRadiusCircle = 8f

@@ -183,6 +183,7 @@ class WheelView(
         style = Paint.Style.STROKE
         strokeWidth = 2f
         isAntiAlias = true
+        isFilterBitmap = true
     }
 
     private val smallOddLineCoverPiePaint = Paint().apply {
@@ -190,6 +191,7 @@ class WheelView(
         style = Paint.Style.STROKE
         strokeWidth = 2f
         isAntiAlias = true
+        isFilterBitmap = true
     }
 
     private var circlePaint = Paint().apply {
@@ -264,7 +266,7 @@ class WheelView(
     private fun update() {
         if (paddingBottom > 0 || paddingEnd > 0 || paddingLeft > 0 || paddingRight > 0 || paddingStart > 0 || paddingTop > 0)
             Throwable("this view cannot handle the padding, remove it and try again")
-        circleRadius = width/8f
+        circleRadius = width/15f
         pieSlice = PieSlice(numberOfSlices, width.toFloat(), height.toFloat(), false, circleRadius)
         pieSliceStatic = PieSlice(middleLockSlice, width.toFloat(), height.toFloat(), true, circleRadius)
         theta = abs((startAngle + ((pieSlice!!.theta/2))-(startAngle /2)))
@@ -323,7 +325,7 @@ class WheelView(
                 canvas.save()
                 canvas.rotate(theta, it.centerCircle, it.centerCircle)
                 drawPieSlice(canvas, i)
-                drawLines(canvas)
+//                drawLines(canvas)
                 canvas.restore()
                 theta += (360f - startAngle)/numberOfSlices
             }
@@ -356,21 +358,21 @@ class WheelView(
             return
         }
 
-//        if (i%2 == 0) {
-//            //even
-//            if (numberOfSlices <= 7)
-//                canvas.drawPath(pathLineCover!!, smallEvenLineCoverPiePaint)
-//            canvas.drawPath(pathSmallPie!!, smallEvenPiePaint)
-//        } else {
-//            //odd
-//            if (numberOfSlices <= 7)
-//                canvas.drawPath(pathLineCover!!, smallOddLineCoverPiePaint)
-//            canvas.drawPath(pathSmallPie!!, smallOddPiePaint)
-//        }
-//        if (i<9)
-//            drawText(canvas, textPaint, "${i+1}", pieSlice, "${i+1}")
-//        else
-//            drawText(canvas, textPaint, "${i+1}", pieSlice, "${i+1}")
+        if (i%2 == 0) {
+            //even
+            if (numberOfSlices <= 7)
+                canvas.drawPath(pathBigPie!!, smallEvenLineCoverPiePaint)
+            canvas.drawPath(pathBigPie!!, smallEvenPiePaint)
+        } else {
+            //odd
+            if (numberOfSlices <= 7)
+                canvas.drawPath(pathBigPie!!, smallOddLineCoverPiePaint)
+            canvas.drawPath(pathBigPie!!, smallOddPiePaint)
+        }
+        if (i<9)
+            drawText(canvas, textPaint, "${i+1}", pieSlice, "${i+1}")
+        else
+            drawText(canvas, textPaint, "${i+1}", pieSlice, "${i+1}")
     }
 
     /**
